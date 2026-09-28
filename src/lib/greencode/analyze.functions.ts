@@ -167,7 +167,29 @@ export const analyzeRepository = createServerFn({ method: "POST" })
       .select("id, created_at")
       .single();
 
-    if (error || !row) throw new Error("Analysis completed but could not be saved. Please try again.");
+    if (error || !row) {
+      if (error) {
+        console.error("[GreenCode] Failed to save analysis to Supabase", {
+          code: error.code,
+          message: error.message,
+          hint: error.hint,
+        });
+      }
+
+      if (error?.code === "42P01" || error?.code === "PGRST205") {
+        throw new Error(
+          "Analysis finished, but the Supabase analyses table is missing. Apply drizzle/migrations/0000_create_greencode_analyses.sql in the Supabase SQL Editor.",
+        );
+      }
+      if (error?.code === "42501") {
+        throw new Error(
+          "Analysis finished, but Supabase denied the save. Check the INSERT grant and row-level security policy for public.analyses.",
+        );
+      }
+      throw new Error(
+        `Analysis finished but could not be saved${error?.code ? ` (Supabase ${error.code})` : ""}. Check the deployment function logs.`,
+      );
+    }
 
     return { id: row.id, analysis: { id: row.id, createdAt: row.created_at, ...partial } };
   });
