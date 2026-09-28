@@ -17,7 +17,12 @@ function createSupabaseFetch(apiKey: string): typeof fetch {
 }
 
 function createAnalysisStore() {
-  const url = process.env["SUPABASE_URL"] ?? import.meta.env["VITE_SUPABASE_URL"];
+  const serverUrl = process.env["SUPABASE_URL"];
+  const clientUrl = import.meta.env["VITE_SUPABASE_URL"];
+  if (serverUrl && clientUrl && new URL(serverUrl).origin !== new URL(clientUrl).origin) {
+    throw new Error("SUPABASE_URL and VITE_SUPABASE_URL point to different Supabase projects.");
+  }
+  const url = serverUrl ?? clientUrl;
   const apiKey =
     process.env["SUPABASE_PUBLISHABLE_KEY"] ??
     process.env["VITE_SUPABASE_PUBLISHABLE_KEY"] ??

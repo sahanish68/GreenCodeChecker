@@ -178,7 +178,7 @@ export const analyzeRepository = createServerFn({ method: "POST" })
 
       if (error?.code === "42P01" || error?.code === "PGRST205") {
         throw new Error(
-          "Analysis finished, but the Supabase analyses table is missing. Apply drizzle/migrations/0000_create_greencode_analyses.sql in the Supabase SQL Editor.",
+          "Analysis finished, but the analyses table is missing in the server's Supabase project. Confirm SUPABASE_URL matches VITE_SUPABASE_URL, then apply drizzle/migrations/0000_create_greencode_analyses.sql to that project.",
         );
       }
       if (error?.code === "42501") {
