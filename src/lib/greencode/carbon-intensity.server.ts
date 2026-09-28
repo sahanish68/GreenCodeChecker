@@ -31,7 +31,7 @@ export async function getCurrentIntensity(regionId: string | null): Promise<Inte
   try {
     const res = await fetch(
       `https://api.electricitymap.org/v3/carbon-intensity/latest?zone=${encodeURIComponent(region.zone)}`,
-      { headers: { "auth-token": apiKey } },
+      { headers: { "auth-token": apiKey }, signal: AbortSignal.timeout(8_000) },
     );
     if (!res.ok) return fallback;
     const json = (await res.json()) as { carbonIntensity?: number; datetime?: string };

@@ -22,8 +22,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { analyzeRepository } from "@/lib/greencode/analyze.functions";
 import { REGIONS } from "@/lib/greencode/regions";
 
-const DEMO_REPO = "https://github.com/dockersamples/example-voting-app";
-
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -139,8 +137,7 @@ function Landing() {
                 className="font-mono text-xs uppercase tracking-widest text-muted-foreground"
                 disabled={mutation.isPending}
                 onClick={() => {
-                  setUrl(DEMO_REPO);
-                  submit(DEMO_REPO);
+                  navigate({ to: "/analysis/$id", params: { id: "demo" } });
                 }}
               >
                 View Demo

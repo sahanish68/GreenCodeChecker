@@ -10,7 +10,10 @@ import {
   estimateCarbon,
   type FileMap,
 } from "./engine";
+import { parseRepoUrl } from "./github";
 import type { AnalysisResult, RepositoryInfo } from "./types";
+
+export { parseRepoUrl } from "./github";
 
 const INTERESTING = [
   "package.json", "requirements.txt", "pyproject.toml", "Pipfile", "pom.xml",
@@ -29,13 +32,6 @@ function isInteresting(path: string): boolean {
   return false;
 }
 
-export function parseRepoUrl(input: string): { owner: string; name: string; branch: string | null } {
-  const trimmed = input.trim().replace(/\.git$/, "").replace(/\/$/, "");
-  const match = trimmed.match(/github\.com[/:]([^/]+)\/([^/]+)(?:\/tree\/([^/]+))?/i);
-  if (!match) throw new Error("Enter a full public GitHub repository URL, for example https://github.com/vercel/next.js");
-  return { owner: match[1]!, name: match[2]!, branch: match[3] ?? null };
-}
-
 export const analyzeRepository = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.object({ url: z.string().min(5) }).parse(input))
   .handler(async ({ data }): Promise<{ id: string; analysis: AnalysisResult }> => {
@@ -49,7 +45,18 @@ export const analyzeRepository = createServerFn({ method: "POST" })
     if (token) headers["Authorization"] = `Bearer ${token}`;
 
     const gh = async (path: string) => {
-      const res = await fetch(`https://api.github.com${path}`, { headers });
+      let res: Response;
+      try {
+        res = await fetch(`https://api.github.com${path}`, {
+          headers,
+          signal: AbortSignal.timeout(15_000),
+        });
+      } catch (error) {
+        if (error instanceof Error && error.name === "TimeoutError") {
+          throw new Error("GitHub did not respond in time. Please try again.");
+        }
+        throw new Error("Could not reach GitHub. Check your connection and try again.");
+      }
       if (res.status === 404) throw new Error("Repository not found. GreenCode supports public GitHub repositories.");
       if (res.status === 403) throw new Error("GitHub rate limit reached. Please try again in a few minutes.");
       if (!res.ok) throw new Error(`GitHub request failed (${res.status}).`);
@@ -81,8 +88,11 @@ export const analyzeRepository = createServerFn({ method: "POST" })
       targets.map(async (p) => {
         try {
           const res = await fetch(
-            `https://raw.githubusercontent.com/${owner}/${name}/${encodeURIComponent(branch)}/${p}`,
-            { headers: token ? { Authorization: `Bearer ${token}` } : {} },
+            `https://raw.githubusercontent.com/${owner}/${name}/${encodeURIComponent(branch)}/${p.split("/").map(encodeURIComponent).join("/")}`,
+            {
+              headers: token ? { Authorization: `Bearer ${token}` } : {},
+              signal: AbortSignal.timeout(15_000),
+            },
           );
           if (!res.ok) return;
           const text = await res.text();
@@ -136,8 +146,8 @@ export const analyzeRepository = createServerFn({ method: "POST" })
       detectedFiles: Object.keys(files),
     };
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: row, error } = await supabaseAdmin
+    const { analysisStore } = await import("./analysis-store.server");
+    const { data: row, error } = await analysisStore
       .from("analyses")
       .insert({
         github_url: repository.url,

@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
+    "test": "node --import tsx --test src/lib/greencode/github.test.ts",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",

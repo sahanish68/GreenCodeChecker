@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
+import { DEMO_ANALYSIS } from "@/lib/greencode/demo";
 import { scoreRegion } from "@/lib/greencode/engine";
 import { REGIONS } from "@/lib/greencode/regions";
 import type { AnalysisResult } from "@/lib/greencode/types";
@@ -71,6 +72,7 @@ function AnalysisPage() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["analysis", id],
     queryFn: async () => {
+      if (id === "demo") return DEMO_ANALYSIS;
       const { data: row, error: err } = await supabase
         .from("analyses")
         .select("id, created_at, result")
@@ -98,16 +100,23 @@ function AnalysisPage() {
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-4">
             <div className="flex items-center gap-4">
               <Brand />
+              {id === "demo" && (
+                <span className="rounded-md border border-primary/40 bg-primary/10 px-2 py-1 font-mono text-[10px] uppercase tracking-widest text-primary">
+                  Demo data
+                </span>
+              )}
               <span className="hidden font-mono text-sm text-muted-foreground sm:inline">
                 {repository.owner}/{repository.name}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <a href={repository.url} target="_blank" rel="noreferrer">
-                <Button variant="outline" size="sm">
-                  <Github className="size-4" /> Repo <ExternalLink className="size-3" />
-                </Button>
-              </a>
+              {id !== "demo" && (
+                <a href={repository.url} target="_blank" rel="noreferrer">
+                  <Button variant="outline" size="sm">
+                    <Github className="size-4" /> Repo <ExternalLink className="size-3" />
+                  </Button>
+                </a>
+              )}
               <Link to="/">
                 <Button size="sm">
                   <ArrowLeft className="size-4" /> Analyze another
@@ -118,6 +127,11 @@ function AnalysisPage() {
         </header>
 
         <main className="mx-auto max-w-6xl space-y-6 px-6 py-8">
+          {id === "demo" && (
+            <div className="rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 text-sm text-muted-foreground">
+              Demo data: these repository details and findings are illustrative and are not a live GitHub analysis.
+            </div>
+          )}
           {/* top row */}
           <section className="grid gap-4 lg:grid-cols-[340px_1fr]">
             <div className="panel flex flex-col items-center p-6">

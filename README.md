@@ -1,24 +1,30 @@
-# Prompt Maestro
+# GreenCode
 
-supose you are a senior develper and making this app based on prompt given as
+GreenCode analyzes public GitHub repositories and estimates environmental impact from repository configuration, infrastructure assumptions, and grid-intensity data. Estimates are not measurements of real-world emissions.
 
-This project was built with [Lovable](https://lovable.dev).
+## Local development
 
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/5cd75082-9162-4683-b86f-71a66f256b9d).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+Use Node.js 20.19+ or 22.12+, and npm.
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
+npm install
+```
+
+Copy `.env.example` to `.env` and fill in the Supabase project URL and publishable key. The `VITE_` versions are used by the browser; the unprefixed versions are used by server code. Never put secret keys behind a `VITE_` name.
+
+```sh
 npm run dev
 ```
+
+Run the focused tests and production build with:
+
+```sh
+npm test
+npm run build
+```
+
+## Vercel deployment
+
+Import this repository into Vercel and deploy with the default build command, `npm run build`. The Nitro adapter is configured for Vercel. Add the four required Supabase variables from `.env.example` in **Project Settings → Environment Variables** for Development, Preview, and Production as needed, then redeploy. Optional `GITHUB_TOKEN` and `CARBON_API_KEY` values can also be configured there.
+
+The Supabase `analyses` table migration is in `drizzle/migrations/`. Apply it to the connected Supabase project before using repository analysis. Public analysis inserts and reads are controlled by that table's row-level security policies.
