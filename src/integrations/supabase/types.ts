@@ -14,7 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      analyses: {
+        Row: {
+          branch: string | null
+          carbon_intensity: number | null
+          carbon_score: number
+          cloud_provider: string | null
+          commit_sha: string | null
+          created_at: string
+          estimated_emissions_g: number | null
+          estimated_energy_kwh: number | null
+          github_url: string
+          id: string
+          languages: Json
+          name: string
+          owner: string
+          region: string | null
+          result: Json
+        }
+        Insert: {
+          branch?: string | null
+          carbon_intensity?: number | null
+          carbon_score: number
+          cloud_provider?: string | null
+          commit_sha?: string | null
+          created_at?: string
+          estimated_emissions_g?: number | null
+          estimated_energy_kwh?: number | null
+          github_url: string
+          id?: string
+          languages?: Json
+          name: string
+          owner: string
+          region?: string | null
+          result?: Json
+        }
+        Update: {
+          branch?: string | null
+          carbon_intensity?: number | null
+          carbon_score?: number
+          cloud_provider?: string | null
+          commit_sha?: string | null
+          created_at?: string
+          estimated_emissions_g?: number | null
+          estimated_energy_kwh?: number | null
+          github_url?: string
+          id?: string
+          languages?: Json
+          name?: string
+          owner?: string
+          region?: string | null
+          result?: Json
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
